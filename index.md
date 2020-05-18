@@ -4,6 +4,8 @@ You can use the [editor on GitHub](https://github.com/jditch/jditch/edit/master/
 
 Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
 
+[this dataset](https://github.com/jditch/jditch/blob/master/income_per_person_gdppercapita_ppp_inflation_adjusted.csv)
+
 ### Markdown
 
 Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
