@@ -16,7 +16,7 @@ We will use the ggplot() function from the ggplot2 library
 Unfortunately, this is made difficult by how ggplot prefers to use a column for an x value, and a column for a y value. 
 We will use the gather() function to turn each country into "observations" with attributes: country, year, gdp
 Here, we will also filter our data to only include observations from 2005 to 2019
-```{r tallboi}
+```
 gdp_tall <- gdp_df %>% 
   gather("year", "gdp", -country) %>%
   filter(year %in% 2005:2019) %>%
