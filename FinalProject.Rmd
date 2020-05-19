@@ -7,7 +7,7 @@ output: html_document
 
 We will be using R to download and analyze a dataset.
 
-The tutorial will assume you are using rstudio, which you can get from https://rstudio.com/products/rstudio/download/
+The tutorial will assume you are using RStudio, which you can get from https://rstudio.com/products/rstudio/download/
 
 To start, we will use a dataset taken from gapminder
 
