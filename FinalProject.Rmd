@@ -5,8 +5,9 @@ date: "5/18/2020"
 output: html_document
 ---
 
-We will be using R to download and analyze a dataset
-The tutorial will assume you are using rstudio, which you can get from (the RStudio website)[https://rstudio.com/products/rstudio/download/]
+We will be using R to download and analyze a dataset.
+
+The tutorial will assume you are using rstudio, which you can get from https://rstudio.com/products/rstudio/download/
 
 To start, we will use a dataset taken from gapminder
 
@@ -18,9 +19,13 @@ gdp_df <- read_csv("https://raw.githubusercontent.com/jditch/jditch/master/incom
 ```
 
 Now that we have the dataset, let's just go ahead and graph it all to visualize what we've got
+
 We will use the ggplot() function from the ggplot2 library
+
 Unfortunately, this is made difficult by how ggplot prefers to use a column for an x value, and a column for a y value. 
+
 We will use the gather() function to turn each country into "observations" with attributes: country, year, gdp
+
 Here, we will also filter our data to only include observations from 2005 to 2019
 ```{r tallboi}
 gdp_tall <- gdp_df %>% 
@@ -32,8 +37,11 @@ gdp_tall
 ```
 
 Now that we have our data ready to go, let's graph it with:
+
 x values corresponding to year
+
 y values corresponting to gdp
+
 groupping by country (for the creation of a line plot)
 
 Due to how much space a legend identifying the colors would take up, we will simply remove it
@@ -65,7 +73,10 @@ gdp_tall %>%
 ```
 
 We can make sense of this with fewer elements cluttering the graph. We can even see a fall in GDP from the 2008 recession
+
 We can also see that with each passing year, the gdp tends to increase
+
+
 
 Do other countries have this increasing trend? This is where we can use linear regression to get a line of best fit for gdp values
 
@@ -91,6 +102,7 @@ gdp.lm %>%
   tidy() 
 ```
 According to this data, gdp, as plotted across all countries, increases at around 160 per year
+
 For those of you taking algebra, the line created by this would be y = -304841.2129 + 160.1051 * x if you wanted to put it into a graphing calculator 
 
 Note the p-value for the year is slightly over 0.05. This means the estimation is not statistically significant
@@ -111,6 +123,7 @@ gdp_tall %>%
 ```
 
 Notice how there are a lot of data points that are very far from our line. We can remedy this by centering each country's mean value on 0
+
 Essentially, we take the mean GDP of across all years, and subtract each of the country's gdp values by that mean
 
 
@@ -140,7 +153,9 @@ gdp_adjusted_df %>%
 ```
 
 The black line running through the clusters of points is our line of best fit
+
 Notice how we still have values that our outliers. These come from countries that have have more volatile differences in GDP from year to year
+
 We can standardize the values by dividing each value by the country's standard deviation, which is derived from all gdp observations from the country
 
 ```{r standardized}
@@ -168,4 +183,5 @@ gdp_standardized_df %>%
 ```
 
 With the data standardized, our data points are more uniformly distributed, and it becomes more obvious that there is a general increasing trend in GDP
+
 However, we completely lose any sense of the scale of our data, as a range of 2 to -3 does not really correspond well to GDP
