@@ -4,7 +4,7 @@ The tutorial will assume you are using RStudio, which you can get from (the RStu
 To start, we will get a dataset taken from gapminder
 
 To download the dataset, run the following code:
-```{r setup}
+```
 library(tidyverse)
 library(readr)
 gdp_df <- read_csv("https://raw.githubusercontent.com/jditch/jditch/master/income_per_person_gdppercapita_ppp_inflation_adjusted.csv")
@@ -34,7 +34,7 @@ groupping by country (for the creation of a line plot)
 Due to how much space a legend identifying the colors would take up, we will simply remove it
 
 
-```{r first-look}
+```
 library(ggplot2)
 gdp_tall %>%
 ggplot(mapping=aes(x=year, y=gdp, group = country, color = country))+
@@ -48,7 +48,7 @@ ggplot(mapping=aes(x=year, y=gdp, group = country, color = country))+
 ![first-look](images/first-look.png)
 Well, that's a mess to look at. Let's just look at the graphs for the Some countries we are familiar with
 
-```{r us-plot}
+```
 gdp_tall %>%
   ggplot(data = subset(gdp_tall, country %in% c("United States", "Mexico", "Canada" , "United Kingdom", "France", "Spain", "Russia")),
          mapping=aes(x=year, y=gdp, group = country, color = country))+
@@ -66,7 +66,7 @@ We can also see that with each passing year, the gdp tends to increase
 Do other countries have this increasing trend? This is where we can use linear regression to get a line of best fit for gdp values
 
 First, let's look at how a line of best fit would look on each of the familiar countries we looked at before, just so we can visualize how the linear regression works
-```{r familiar-lm}
+```
 gdp_tall %>%
   ggplot(data = subset(gdp_tall, country %in% c("United States", "Mexico", "Canada" , "United Kingdom", "France", "Spain", "Russia")),
          mapping=aes(x=year, y=gdp, group = country, color = country))+
@@ -82,7 +82,7 @@ These lines all follow the trend of the data from the countries they are tied to
 
 Continuing on, let's use the broom::lm() function to get the values for a linear regression
 
-```{r lm}
+```
 library(broom)
 gdp.lm = lm(formula = gdp ~ year, data=gdp_tall)
 
@@ -98,7 +98,7 @@ Note the p-value for the year is slightly over 0.05. This means the estimation i
 i.e. The data does not follow this trend perfectly
 
 We can use ggplot to create a line of best fit in a graph
-```{r plotlm}
+```
 library(broom)
 ggplot
 
@@ -116,7 +116,7 @@ Notice how there are a lot of data points that are very far from our line. We ca
 Essentially, we take the mean GDP of across all years, and subtract each of the country's gdp values by that mean
 
 
-```{r adjusted}
+```
 gdp_adjusted_df <- gdp_tall %>%
   group_by(country) %>%
   mutate(mean_gdp = mean(gdp)) %>%
@@ -128,7 +128,7 @@ gdp_adjusted_df
 
 Now if we try to graph a regression line using the adjusted value, it looks like this:
 
-```{r adjusted-plot}
+```
 gdp_adjusted_df %>%
   ggplot(mapping=aes(x=year, y=adjusted_gdp))+
     geom_line(mapping=aes(x=year, y=adjusted_gdp, group = country, color = country), method="lm", se=FALSE) +
@@ -145,7 +145,7 @@ The black line running through the clusters of points is our line of best fit
 Notice how we still have values that our outliers. These come from countries that have have more volatile differences in GDP from year to year
 We can standardize the values by dividing each value by the country's standard deviation, which is derived from all gdp observations from the country
 
-```{r standardized}
+```
 gdp_standardized_df <- gdp_tall %>%
   group_by(country) %>%
   mutate(mean_gdp = mean(gdp)) %>%
@@ -157,7 +157,7 @@ gdp_standardized_df
 ![standardized](images/standardized.PNG)
 
 
-```{r standardized-plot}
+```
 gdp_standardized_df %>%
   ggplot(mapping=aes(x=year, y=z_gdp))+
     geom_line(mapping=aes(x=year, y=z_gdp, group = country, color = country), method="lm", se=FALSE) +
@@ -171,4 +171,5 @@ gdp_standardized_df %>%
 ![standardized-plot](images/standardized-plot.png)
 
 With the data standardized, our data points are more uniformly distributed, and it becomes more obvious that there is a general increasing trend in GDP
+
 However, we completely lose any sense of the scale of our data, as a range of 2 to -3 does not really correspond well to GDP
