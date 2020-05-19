@@ -1,39 +1,174 @@
-## Welcome to GitHub Pages
+We will be using R to download and analyze a dataset
+The tutorial will assume you are using RStudio, which you can get from (the RStudio website)[https://rstudio.com/products/rstudio/download/]
 
-You can use the [editor on GitHub](https://github.com/jditch/jditch/edit/master/index.md) to maintain and preview the content for your website in Markdown files.
+To start, we will get a dataset taken from gapminder
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+To download the dataset, run the following code:
+```{r setup}
+library(tidyverse)
+library(readr)
+gdp_df <- read_csv("https://raw.githubusercontent.com/jditch/jditch/master/income_per_person_gdppercapita_ppp_inflation_adjusted.csv")
 
-[this dataset](https://github.com/jditch/jditch/blob/master/income_per_person_gdppercapita_ppp_inflation_adjusted.csv)
-
-### Markdown
-
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
-
-```markdown
-Syntax highlighted code block
-
-# Header 1
-## Header 2
-### Header 3
-
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
 ```
 
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
+Now that we have the dataset, let's just go ahead and graph it all to visualize what we've got
+We will use the ggplot() function from the ggplot2 library
+Unfortunately, this is made difficult by how ggplot prefers to use a column for an x value, and a column for a y value. 
+We will use the gather() function to turn each country into "observations" with attributes: country, year, gdp
+Here, we will also filter our data to only include observations from 2005 to 2019
+```{r tallboi}
+gdp_tall <- gdp_df %>% 
+  gather("year", "gdp", -country) %>%
+  filter(year %in% 2005:2019) %>%
+  mutate(year = as.integer(year))
 
-### Jekyll Themes
+gdp_tall
+```
+![gdp_tall](images/gdp_tall.PNG)
 
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/jditch/jditch/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
+Now that we have our data ready to go, let's graph it with:
+x values corresponding to year
+y values corresponting to gdp
+groupping by country (for the creation of a line plot)
 
-### Support or Contact
+Due to how much space a legend identifying the colors would take up, we will simply remove it
 
-Having trouble with Pages? Check out our [documentation](https://help.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
+
+```{r first-look}
+library(ggplot2)
+gdp_tall %>%
+ggplot(mapping=aes(x=year, y=gdp, group = country, color = country))+
+    geom_point() +
+    geom_line(method="lm", se=FALSE) +
+  labs(title="GDP/Capita of Countries",
+       x="Year",
+       y="GDP/Capita, PPP$ inflation-adjusted") +
+  theme(legend.position="none")
+```
+![first-look](images/first-look.png)
+Well, that's a mess to look at. Let's just look at the graphs for the Some countries we are familiar with
+
+```{r us-plot}
+gdp_tall %>%
+  ggplot(data = subset(gdp_tall, country %in% c("United States", "Mexico", "Canada" , "United Kingdom", "France", "Spain", "Russia")),
+         mapping=aes(x=year, y=gdp, group = country, color = country))+
+    geom_point() +
+    geom_line(method="lm", se=FALSE) + 
+    labs(title="GDP/Capita of Familiar Countries",
+       x="Year",
+       y="GDP/Capita, PPP$ inflation-adjusted")
+```
+![familiar-plot](images/familiar-plot.png)
+
+We can make sense of this with fewer elements cluttering the graph. We can even see a fall in GDP from the 2008 recession
+We can also see that with each passing year, the gdp tends to increase
+
+Do other countries have this increasing trend? This is where we can use linear regression to get a line of best fit for gdp values
+
+First, let's look at how a line of best fit would look on each of the familiar countries we looked at before, just so we can visualize how the linear regression works
+```{r familiar-lm}
+gdp_tall %>%
+  ggplot(data = subset(gdp_tall, country %in% c("United States", "Mexico", "Canada" , "United Kingdom", "France", "Spain", "Russia")),
+         mapping=aes(x=year, y=gdp, group = country, color = country))+
+    geom_point() +
+    geom_smooth(method="lm", se=FALSE) + 
+    labs(title="Fitted GDP/Capita of Familiar Countries",
+       x="Year",
+       y="GDP/Capita, PPP$ inflation-adjusted")
+```
+![familiar-lm](images/fitted-familiar.png)
+
+These lines all follow the trend of the data from the countries they are tied to, and all of the lines are increasing, affirming our previous observation of an increasing trend in the gdp each year
+
+Continuing on, let's use the broom::lm() function to get the values for a linear regression
+
+```{r lm}
+library(broom)
+gdp.lm = lm(formula = gdp ~ year, data=gdp_tall)
+
+gdp.lm %>%
+  tidy() 
+```
+![familiar-lm](images/lm.PNG)
+
+According to this data, gdp, as plotted across all countries, increases at around 160 per year
+For those with graphing calculators, the line created by this would be y = 160.1051 * x - 304841.2129 
+
+Note the p-value for the year is slightly over 0.05. This means the estimation is not statistically significant
+i.e. The data does not follow this trend perfectly
+
+We can use ggplot to create a line of best fit in a graph
+```{r plotlm}
+library(broom)
+ggplot
+
+gdp_tall %>%
+  ggplot(mapping=aes(x=year, y=gdp))+
+    geom_point() +
+    geom_smooth(method="lm", se = FALSE) + 
+    labs(title="Fitted GDP/Capita of Countries",
+       x="Year",
+       y="GDP/Capita, PPP$ inflation-adjusted")
+```
+![plotlm](images/plotlm.png)
+
+Notice how there are a lot of data points that are very far from our line. We can remedy this by centering each country's mean value on 0
+Essentially, we take the mean GDP of across all years, and subtract each of the country's gdp values by that mean
+
+
+```{r adjusted}
+gdp_adjusted_df <- gdp_tall %>%
+  group_by(country) %>%
+  mutate(mean_gdp = mean(gdp)) %>%
+  mutate(adjusted_gdp = (gdp - mean_gdp) ) %>%
+  ungroup()
+gdp_adjusted_df
+```
+![adjusted](images/adjusted.PNG)
+
+Now if we try to graph a regression line using the adjusted value, it looks like this:
+
+```{r adjusted-plot}
+gdp_adjusted_df %>%
+  ggplot(mapping=aes(x=year, y=adjusted_gdp))+
+    geom_line(mapping=aes(x=year, y=adjusted_gdp, group = country, color = country), method="lm", se=FALSE) +
+    geom_point() +
+    geom_smooth(method="lm", se = FALSE, color = 'black') + 
+    labs(title="Fitted GDP/Capita of Countries. GDP Centered by Country Mean",
+       x="Year",
+       y="GDP/Capita, PPP$ inflation-adjusted")+
+  theme(legend.position="none")
+```
+![adjusted-plot](images/adjusted-plot.png)
+
+The black line running through the clusters of points is our line of best fit
+Notice how we still have values that our outliers. These come from countries that have have more volatile differences in GDP from year to year
+We can standardize the values by dividing each value by the country's standard deviation, which is derived from all gdp observations from the country
+
+```{r standardized}
+gdp_standardized_df <- gdp_tall %>%
+  group_by(country) %>%
+  mutate(mean_gdp = mean(gdp)) %>%
+  mutate(sd_gdp = sd(gdp)) %>%
+  mutate(z_gdp = (gdp - mean_gdp) / sd_gdp) %>%
+  ungroup()
+gdp_standardized_df
+```
+![standardized](images/standardized.PNG)
+
+
+```{r standardized-plot}
+gdp_standardized_df %>%
+  ggplot(mapping=aes(x=year, y=z_gdp))+
+    geom_line(mapping=aes(x=year, y=z_gdp, group = country, color = country), method="lm", se=FALSE) +
+    geom_point() +
+    geom_smooth(method="lm", se = FALSE, color = 'black') + 
+    labs(title="Fitted GDP/Capita of Countries. GDP Standardized by Country",
+       x="Year",
+       y="GDP/Capita, PPP$ inflation-adjusted") +
+  theme(legend.position="none")
+```
+![standardized-plot](images/standardized-plot.png)
+
+With the data standardized, our data points are more uniformly distributed, and it becomes more obvious that there is a general increasing trend in GDP
+However, we completely lose any sense of the scale of our data, as a range of 2 to -3 does not really correspond well to GDP
